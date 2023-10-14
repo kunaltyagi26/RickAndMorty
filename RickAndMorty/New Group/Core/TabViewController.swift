@@ -1,5 +1,5 @@
 //
-//  ViewController.swift
+//  TabViewController.swift
 //  RickAndMorty
 //
 //  Created by Kunal Tyagi on 14/10/23.
@@ -7,11 +7,11 @@
 
 import UIKit
 
-class ViewController: UIViewController {
-
+class TabViewController: UITabBarController {
+    // MARK: - Lifecycle Methods
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
+        view.backgroundColor = .red
     }
 
 
