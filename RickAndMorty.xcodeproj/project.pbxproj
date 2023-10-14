@@ -19,6 +19,9 @@
 		2BCF7ADA2ADAC3AF00F5390D /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCF7AD92ADAC3AF00F5390D /* SettingsViewController.swift */; };
 		2BCF7ADC2ADAC3BF00F5390D /* EpisodeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCF7ADB2ADAC3BF00F5390D /* EpisodeViewController.swift */; };
 		2BCF7ADE2ADAC3DE00F5390D /* LocationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCF7ADD2ADAC3DE00F5390D /* LocationViewController.swift */; };
+		2BCF7AE02ADAD7E700F5390D /* Service.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCF7ADF2ADAD7E600F5390D /* Service.swift */; };
+		2BCF7AE22ADAD7F400F5390D /* Request.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCF7AE12ADAD7F400F5390D /* Request.swift */; };
+		2BCF7AE42ADAD87B00F5390D /* Endpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BCF7AE32ADAD87B00F5390D /* Endpoint.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,6 +39,9 @@
 		2BCF7AD92ADAC3AF00F5390D /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 		2BCF7ADB2ADAC3BF00F5390D /* EpisodeViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EpisodeViewController.swift; sourceTree = "<group>"; };
 		2BCF7ADD2ADAC3DE00F5390D /* LocationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationViewController.swift; sourceTree = "<group>"; };
+		2BCF7ADF2ADAD7E600F5390D /* Service.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Service.swift; sourceTree = "<group>"; };
+		2BCF7AE12ADAD7F400F5390D /* Request.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Request.swift; sourceTree = "<group>"; };
+		2BCF7AE32ADAD87B00F5390D /* Endpoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Endpoint.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -117,6 +123,9 @@
 		2BCF7ACD2ADAC15100F5390D /* APIClient */ = {
 			isa = PBXGroup;
 			children = (
+				2BCF7ADF2ADAD7E600F5390D /* Service.swift */,
+				2BCF7AE12ADAD7F400F5390D /* Request.swift */,
+				2BCF7AE32ADAD87B00F5390D /* Endpoint.swift */,
 			);
 			path = APIClient;
 			sourceTree = "<group>";
@@ -222,13 +231,16 @@
 			buildActionMask = 2147483647;
 			files = (
 				2BCF7ABA2ADABFCF00F5390D /* TabViewController.swift in Sources */,
+				2BCF7AE22ADAD7F400F5390D /* Request.swift in Sources */,
 				2BCF7ADC2ADAC3BF00F5390D /* EpisodeViewController.swift in Sources */,
+				2BCF7AE42ADAD87B00F5390D /* Endpoint.swift in Sources */,
 				2BCF7AD52ADAC24800F5390D /* Episode.swift in Sources */,
 				2BCF7AD82ADAC39B00F5390D /* CharacterViewController.swift in Sources */,
 				2BCF7AB62ADABFCF00F5390D /* AppDelegate.swift in Sources */,
 				2BCF7ADE2ADAC3DE00F5390D /* LocationViewController.swift in Sources */,
 				2BCF7AD32ADAC23300F5390D /* Character.swift in Sources */,
 				2BCF7AD12ADAC21200F5390D /* Location.swift in Sources */,
+				2BCF7AE02ADAD7E700F5390D /* Service.swift in Sources */,
 				2BCF7AB82ADABFCF00F5390D /* SceneDelegate.swift in Sources */,
 				2BCF7ADA2ADAC3AF00F5390D /* SettingsViewController.swift in Sources */,
 			);
