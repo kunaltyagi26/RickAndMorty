@@ -15,6 +15,7 @@ final class TabViewController: UITabBarController {
         setupTabs()
     }
 
+    // MARK: - Private Methods
     private func setupTabs() {
         let charactersVC = CharacterViewController()
         let locationVC = LocationViewController()
