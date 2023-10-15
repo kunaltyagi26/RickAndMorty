@@ -17,8 +17,17 @@ class CharacterListViewModel {
     
     typealias EventHandler = (Event) -> Void
     
-    var eventHandler: EventHandler
-    var characters = [Character]()
+    private var eventHandler: EventHandler
+    
+    var characters = [Character]() {
+        didSet {
+            cellViewModels = characters.compactMap {
+                CharacterCollectionViewCellViewModel(character: $0)
+            }
+        }
+    }
+    
+    var cellViewModels = [CharacterCollectionViewCellViewModel]()
     
     init(eventHandler: @escaping EventHandler) {
         self.eventHandler = eventHandler

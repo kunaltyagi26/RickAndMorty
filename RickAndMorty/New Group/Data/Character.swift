@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Character: Decodable {
+struct Character: Decodable, Hashable {
     let id: Int
     let name: String
     let status: CharacterStatus
@@ -20,6 +20,14 @@ struct Character: Decodable {
     let episode: [String]
     let url: String
     let created: String
+    
+    func hash(into hasher: inout Hasher) {
+        return hasher.combine(id)
+    }
+    
+    static func == (lhs: Character, rhs: Character) -> Bool {
+        lhs.id == rhs.id
+    }
 }
 
 struct Object: Decodable {
@@ -31,6 +39,15 @@ enum CharacterStatus: String, Decodable {
     case alive = "Alive"
     case dead = "Dead"
     case unknown = "unknown"
+    
+    var text: String {
+        switch self {
+        case .alive, .dead:
+            return rawValue
+        case .unknown:
+            return "Unknown"
+        }
+    }
 }
 
 enum CharacterGender: String, Decodable {

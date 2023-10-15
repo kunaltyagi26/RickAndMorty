@@ -16,6 +16,7 @@ final class Service {
     private init() {}
     
     enum ServiceError: Error {
+        case inavlidURL
         case invalidRequest
         case errorFetchingData
         case invalidResponse
