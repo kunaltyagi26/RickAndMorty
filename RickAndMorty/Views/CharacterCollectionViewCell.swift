@@ -109,7 +109,7 @@ final class CharacterCollectionViewCell: UICollectionViewCell {
                 return
             }
             switch imageDataResult {
-            case .success(let imageData):
+            case .success(let image):
                 DispatchQueue.main.async { [weak self ] in
                     guard let self = self else {
                         return
@@ -117,7 +117,7 @@ final class CharacterCollectionViewCell: UICollectionViewCell {
                     
                     self.nameLabel.text = self.viewModel?.characterName
                     self.statusLabel.text = self.viewModel?.characterStatus
-                    self.imageView.image = UIImage(data: imageData)
+                    self.imageView.image = image
                 }
             case .failure(let error):
                 print(error)

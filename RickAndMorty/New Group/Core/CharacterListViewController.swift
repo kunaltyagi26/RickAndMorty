@@ -8,7 +8,7 @@
 import UIKit
 
 /// Controller to show and search for Characters
-final class CharacterViewController: UIViewController {
+final class CharacterListViewController: UIViewController {
     // MARK: - Enums
     enum Section {
         case all
@@ -17,6 +17,7 @@ final class CharacterViewController: UIViewController {
     // MARK: - Variables
     private var characterListViewModel: CharacterListViewModel?
     lazy var dataSource = configureDataSource()
+    private var isLoadingMoreCharacters = false
     
     // MARK: - UI Elements
     private let activityIndicator: UIActivityIndicatorView = {
@@ -25,15 +26,25 @@ final class CharacterViewController: UIViewController {
         return indicator
     }()
     
-    private let collectionView: UICollectionView = {
+    private lazy var collectionView: UICollectionView = {
         let flowLayout = UICollectionViewFlowLayout()
         flowLayout.scrollDirection = .vertical
-        flowLayout.sectionInset = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
+        flowLayout.sectionInset = UIEdgeInsets(top: 0, left: 10, bottom: 10, right: 10)
+        flowLayout.sectionFootersPinToVisibleBounds = false
+        
         let collectionView = UICollectionView(
             frame: .zero,
             collectionViewLayout: flowLayout
         )
-        collectionView.register(CharacterCollectionViewCell.self, forCellWithReuseIdentifier: "\(CharacterCollectionViewCell.self)")
+        collectionView.register(
+            CharacterCollectionViewCell.self,
+            forCellWithReuseIdentifier: "\(CharacterCollectionViewCell.self)"
+        )
+        collectionView.register(
+            FooterLoadingView.self,
+            forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter,
+            withReuseIdentifier: "\(FooterLoadingView.self)"
+        )
         collectionView.isHidden = true
         collectionView.alpha = 0
         return collectionView
@@ -83,14 +94,15 @@ final class CharacterViewController: UIViewController {
                 UIView.animate(withDuration: 0.4) {
                     self.collectionView.alpha = 1
                 }
+                isLoadingMoreCharacters = false
             case .showError:
-                break
+                isLoadingMoreCharacters = false
             }
         }
     }
     
     private func configureDataSource() -> UICollectionViewDiffableDataSource<Section, Character> {
-        UICollectionViewDiffableDataSource<Section, Character>(
+        let datasource = UICollectionViewDiffableDataSource<Section, Character>(
             collectionView: self.collectionView
         ) { [weak self] collectionView, indexPath, character in
             guard let self = self,
@@ -103,6 +115,21 @@ final class CharacterViewController: UIViewController {
             cell.viewModel = self.characterListViewModel?.cellViewModels[indexPath.row]
             return cell
         }
+        
+        datasource.supplementaryViewProvider = { collectionView, elementKind, indexPath in
+            guard elementKind == UICollectionView.elementKindSectionFooter,
+                  let footerLoadingView = collectionView.dequeueReusableSupplementaryView(
+                    ofKind: elementKind,
+                    withReuseIdentifier: "\(FooterLoadingView.self)",
+                    for: indexPath
+                  ) as? FooterLoadingView else {
+                return nil
+            }
+            footerLoadingView.startAnimating()
+            return footerLoadingView
+        }
+        
+        return datasource
     }
     
     private func updateSnapshot(animatingChange: Bool = false) {
@@ -116,13 +143,61 @@ final class CharacterViewController: UIViewController {
     }
 }
 
-// MARK: - UICollectionViewDelegateFlowLayout Delegate
-extension CharacterViewController: UICollectionViewDelegateFlowLayout {
+// MARK: - UICollectionViewDelegateFlowLayout
+extension CharacterListViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         let width: CGFloat = (UIScreen.main.bounds.width - 30) / 2
         return CGSize(
             width: width,
             height: width * 1.5
         )
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForFooterInSection section: Int) -> CGSize {
+        guard let shouldShow = self.characterListViewModel?.shouldShowLoadMoreIndicator,
+              shouldShow else {
+            return .zero
+        }
+        
+        return CGSize(width: UIScreen.main.bounds.width, height: 50)
+    }
+}
+
+// MARK: - UICollectionViewDelegate
+extension CharacterListViewController: UICollectionViewDelegate {
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        collectionView.deselectItem(at: indexPath, animated: true)
+        
+        guard let character = characterListViewModel?.characters[indexPath.row] else {
+            return
+        }
+        
+        let detailVC = CharacterDetailViewController(
+            viewModel: CharacterDetailViewModel(
+                character: character
+            )
+        )
+        detailVC.navigationItem.largeTitleDisplayMode = .never
+        self.navigationController?.pushViewController(detailVC, animated: true)
+    }
+}
+
+// MARK: - UIScrollViewDelegate
+extension CharacterListViewController: UIScrollViewDelegate {
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        guard let shouldShow = self.characterListViewModel?.shouldShowLoadMoreIndicator,
+              shouldShow,
+              !isLoadingMoreCharacters else {
+            return
+        }
+        
+        let offset = scrollView.contentOffset.y
+        let contentHeight = scrollView.contentSize.height
+        let scrollViewFixedHeight = scrollView.frame.size.height
+        
+        if offset >= contentHeight - scrollViewFixedHeight - 70 {
+            isLoadingMoreCharacters = true
+            characterListViewModel?.fetchAdditionalCharacters()
+        }
     }
 }

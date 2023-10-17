@@ -6,32 +6,25 @@
 //
 
 import Foundation
+import UIKit
 
-class CharacterCollectionViewCellViewModel {
+/// View model to handle character cell view logic
+final class CharacterCollectionViewCellViewModel {
     var characterName: String?
     var characterStatus: String?
-    var characterImageURL: URL?
+    var characterImageURL: String?
     
     init(character: Character) {
         characterName = character.name
         characterStatus = "Status: \(character.status.text)"
-        characterImageURL = URL(string: character.image)
+        characterImageURL = character.image
     }
     
-    func fetchImage() async -> Result<Data,Service.ServiceError> {
+    func fetchImage() async -> Result<UIImage,Service.ServiceError> {
         guard let characterImageURL = characterImageURL else {
             return .failure(.inavlidURL)
         }
         
-        do {
-            let (imageData, urlResponse) = try await URLSession.shared.data(from: characterImageURL)
-            guard let urlResponse = urlResponse as? HTTPURLResponse,
-                  200...300 ~= urlResponse.statusCode else {
-                return .failure(.invalidResponse)
-            }
-            return .success(imageData)
-        } catch {
-            return .failure(.errorFetchingData)
-        }
+        return await ImageManager.shared.loadImageUsingCache(withURLString: characterImageURL)
     }
 }

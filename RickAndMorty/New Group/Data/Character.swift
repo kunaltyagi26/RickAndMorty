@@ -8,7 +8,9 @@
 import Foundation
 
 struct Character: Decodable, Hashable {
-    let id: Int
+    let uuid = UUID()
+    
+    var id: Int
     let name: String
     let status: CharacterStatus
     let species: String
@@ -22,20 +24,28 @@ struct Character: Decodable, Hashable {
     let created: String
     
     func hash(into hasher: inout Hasher) {
-        return hasher.combine(id)
+        return hasher.combine(uuid)
     }
     
     static func == (lhs: Character, rhs: Character) -> Bool {
-        lhs.id == rhs.id
+        lhs.uuid == rhs.uuid
     }
 }
 
-struct Object: Decodable {
+struct Object: Decodable, Hashable {
     let name: String
     let url: String
+    
+    func hash(into hasher: inout Hasher) {
+        return hasher.combine(name)
+    }
+    
+    static func == (lhs: Object, rhs: Object) -> Bool {
+        lhs.name == rhs.name
+    }
 }
 
-enum CharacterStatus: String, Decodable {
+enum CharacterStatus: String, Decodable, Hashable {
     case alive = "Alive"
     case dead = "Dead"
     case unknown = "unknown"
@@ -50,7 +60,7 @@ enum CharacterStatus: String, Decodable {
     }
 }
 
-enum CharacterGender: String, Decodable {
+enum CharacterGender: String, Decodable, Hashable {
     case female = "Female"
     case male = "Male"
     case genderless = "Genderless"

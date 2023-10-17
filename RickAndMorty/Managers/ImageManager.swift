@@ -1,0 +1,42 @@
+//
+//  ImageManager.swift
+//  RickAndMorty
+//
+//  Created by Kunal Tyagi on 15/10/23.
+//
+
+import UIKit
+
+let imageCache = NSCache<NSString, UIImage>()
+
+struct ImageManager {
+    static var shared = ImageManager()
+    
+    private init() {}
+    
+    func loadImageUsingCache(withURLString URLString: String) async -> Result<UIImage, Service.ServiceError> {
+        if let cachedImage = imageCache.object(forKey: NSString(string: URLString)) {
+            return .success(cachedImage)
+        }
+        
+        if let url = URL(string: URLString) {
+            do {
+                let (imageData, urlResponse) = try await URLSession.shared.data(from: url)
+                guard let urlResponse = urlResponse as? HTTPURLResponse,
+                      200...300 ~= urlResponse.statusCode else {
+                    return .failure(.invalidResponse)
+                }
+                
+                if let downloadedImage = UIImage(data: imageData) {
+                    imageCache.setObject(downloadedImage, forKey: NSString(string: URLString))
+                    return .success(downloadedImage)
+                }
+            } catch {
+                return .failure(.errorFetchingData)
+            }
+        } else {
+            return .failure(.inavlidURL)
+        }
+        return .failure(.errorMessage("Unknown error."))
+    }
+}
