@@ -8,7 +8,7 @@
 import Foundation
 
 struct Character: Decodable, Hashable {
-    let uuid = UUID()
+    private let uuid = UUID()
     
     var id: Int
     let name: String
@@ -54,6 +54,7 @@ enum CharacterStatus: String, Decodable, Hashable {
         switch self {
         case .alive, .dead:
             return rawValue
+            
         case .unknown:
             return "Unknown"
         }
@@ -65,4 +66,14 @@ enum CharacterGender: String, Decodable, Hashable {
     case male = "Male"
     case genderless = "Genderless"
     case unknown = "unknown"
+    
+    var text: String {
+        switch self {
+        case .female, .male, .genderless:
+            return rawValue
+            
+        case .unknown:
+            return "Unknown"
+        }
+    }
 }

@@ -12,6 +12,8 @@ final class Service {
     /// Shared singleton instance
     static let shared = Service()
     
+    private var cacheManager = APICacheManager()
+    
     /// Privatized constructor
     private init() {}
     
@@ -33,6 +35,18 @@ final class Service {
         _ request: Request,
         expecting type: T.Type
     ) async -> Result<T, ServiceError> {
+        if let cachedData = cacheManager.cachedResponse(
+            for: request.endpoint,
+            url: request.url
+        ) {
+            do {
+                let cachedResponse = try JSONDecoder().decode(type.self, from: cachedData)
+                return .success(cachedResponse)
+            } catch {
+                return .failure(.decodingError)
+            }
+        }
+        
         guard let urlRequest = request.urlRequest else {
             return .failure(.invalidRequest)
         }
@@ -44,11 +58,60 @@ final class Service {
                 return .failure(.invalidResponse)
             }
             let response = try JSONDecoder().decode(type.self, from: data)
+            cacheManager.setCache(
+                for: request.endpoint,
+                url: request.url,
+                data: data
+            )
             return .success(response)
         } catch _ as DecodingError {
             return .failure(.decodingError)
         } catch {
             return .failure(.errorFetchingData)
         }
+    }
+    
+    func executeThroughCompletion<T: Decodable>(
+        _ request: Request,
+        expecting type: T.Type,
+        completion: @escaping (Result<T, ServiceError>) -> Void
+    ) {
+        if let cachedData = cacheManager.cachedResponse(
+            for: request.endpoint,
+            url: request.url
+        ) {
+            do {
+                let cachedResponse = try JSONDecoder().decode(type.self, from: cachedData)
+                completion(.success(cachedResponse))
+            } catch {
+                completion(.failure(.decodingError))
+            }
+        }
+        
+        guard let urlRequest = request.urlRequest else {
+            completion(.failure(.invalidRequest))
+            return
+        }
+        
+        URLSession.shared.dataTask(with: urlRequest) { [weak self] data, response, error in
+            guard let data = data,
+                  let urlResponse = response as? HTTPURLResponse,
+                  200...300 ~= urlResponse.statusCode else {
+                completion(.failure(.invalidResponse))
+                return
+            }
+            
+            do {
+                let response = try JSONDecoder().decode(type.self, from: data)
+                self?.cacheManager.setCache(
+                    for: request.endpoint,
+                    url: request.url,
+                    data: data
+                )
+                completion(.success(response))
+            } catch {
+                completion(.failure(.decodingError))
+            }
+        }.resume()
     }
 }

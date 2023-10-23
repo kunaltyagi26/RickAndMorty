@@ -7,13 +7,19 @@
 
 import UIKit
 
-let imageCache = NSCache<NSString, UIImage>()
-
 struct ImageManager {
+    // MARK: - Variables
+    let imageCache = NSCache<NSString, UIImage>()
     static var shared = ImageManager()
     
+    // MARK: - Lifecycle Methods
     private init() {}
     
+    // MARK: - Public Methods
+    
+    /// Get image with URL
+    /// - Parameter URLString: source urll
+    /// - Returns: callback
     func loadImageUsingCache(withURLString URLString: String) async -> Result<UIImage, Service.ServiceError> {
         if let cachedImage = imageCache.object(forKey: NSString(string: URLString)) {
             return .success(cachedImage)

@@ -8,6 +8,8 @@
 import Foundation
 
 struct Episode: Decodable {
+    private let uuid = UUID()
+    
     let id: Int
     let name: String
     let airDate: String
@@ -24,5 +26,15 @@ struct Episode: Decodable {
         case characters
         case url
         case created
+    }
+}
+
+extension Episode: Hashable {
+    func hash(into hasher: inout Hasher) {
+        return hasher.combine(uuid)
+    }
+    
+    static func == (lhs: Episode, rhs: Episode) -> Bool {
+        lhs.uuid == rhs.uuid
     }
 }

@@ -71,6 +71,7 @@ final class CharacterListViewModel {
                 
                 apiInfo = characterResponse.info
                 eventHandler(.refreshData)
+                
             case .failure(let error):
                 print(error)
                 eventHandler(.showError)

@@ -1,5 +1,5 @@
 //
-//  CharacterViewController.swift
+//  EpisodeListViewController.swift
 //  RickAndMorty
 //
 //  Created by Kunal Tyagi on 14/10/23.
@@ -7,17 +7,17 @@
 
 import UIKit
 
-/// Controller to show and search for Characters
-final class CharacterListViewController: UIViewController {
+/// Controller to show and search for Episodes
+final class EpisodeListViewController: UIViewController {
     // MARK: - Enums
     enum Section {
         case all
     }
     
     // MARK: - Variables
-    private var characterListViewModel: CharacterListViewModel?
+    private var episodeListViewModel: EpisodeListViewModel?
     lazy var dataSource = configureDataSource()
-    private var isLoadingMoreCharacters = false
+    private var isLoadingMoreEpisodes = false
     
     // MARK: - UI Elements
     private let activityIndicator: UIActivityIndicatorView = {
@@ -38,8 +38,8 @@ final class CharacterListViewController: UIViewController {
         )
         
         collectionView.register(
-            CharacterCollectionViewCell.self,
-            forCellWithReuseIdentifier: "\(CharacterCollectionViewCell.self)"
+            CharacterEpisodeCollectionViewCell.self,
+            forCellWithReuseIdentifier: "\(CharacterEpisodeCollectionViewCell.self)"
         )
         collectionView.register(
             FooterLoadingView.self,
@@ -56,23 +56,23 @@ final class CharacterListViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
-        title = "Characters"
+        title = "Episodes"
         setupView()
-        characterListViewModel = CharacterListViewModel(eventHandler: handleEvent)
+        episodeListViewModel = EpisodeListViewModel(eventHandler: handleEvent)
     }
     
     // MARK: - Private Methods
     
     /// To setup view
     private func setupView() {
-        setupCollectionView()
-        activityIndicator.center(to: view)
-        
         navigationItem.rightBarButtonItem = UIBarButtonItem(
             barButtonSystemItem: .search,
             target: self,
             action: #selector(didTapSearch)
         )
+        
+        setupCollectionView()
+        activityIndicator.center(to: view)
     }
 
     /// To setup collection view
@@ -84,7 +84,7 @@ final class CharacterListViewController: UIViewController {
     
     /// To handle all the events with respect to this controller
     /// - Parameter event: type of event
-    private func handleEvent(event: CharacterListViewModel.Event) {
+    private func handleEvent(event: EpisodeListViewModel.Event) {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else {
                 return
@@ -104,26 +104,26 @@ final class CharacterListViewController: UIViewController {
                 UIView.animate(withDuration: 0.4) {
                     self.collectionView.alpha = 1
                 }
-                isLoadingMoreCharacters = false
+                isLoadingMoreEpisodes = false
                 
             case .showError:
-                isLoadingMoreCharacters = false
+                isLoadingMoreEpisodes = false
             }
         }
     }
     
-    private func configureDataSource() -> UICollectionViewDiffableDataSource<Section, Character> {
-        let datasource = UICollectionViewDiffableDataSource<Section, Character>(
+    private func configureDataSource() -> UICollectionViewDiffableDataSource<Section, Episode> {
+        let datasource = UICollectionViewDiffableDataSource<Section, Episode>(
             collectionView: self.collectionView
-        ) { [weak self] collectionView, indexPath, character in
+        ) { [weak self] collectionView, indexPath, episode in
             guard let self = self,
                   let cell = collectionView.dequeueReusableCell(
-                    withReuseIdentifier: "\(CharacterCollectionViewCell.self)",
+                    withReuseIdentifier: "\(CharacterEpisodeCollectionViewCell.self)",
                     for: indexPath
-                  ) as? CharacterCollectionViewCell else {
+                  ) as? CharacterEpisodeCollectionViewCell else {
                 return UICollectionViewCell()
             }
-            cell.viewModel = self.characterListViewModel?.cellViewModels[indexPath.row]
+            cell.viewModel = self.episodeListViewModel?.cellViewModels[indexPath.row]
             return cell
         }
         
@@ -144,35 +144,33 @@ final class CharacterListViewController: UIViewController {
     }
     
     private func updateSnapshot(animatingChange: Bool = false) {
-        guard let characters = characterListViewModel?.characters else {
+        guard let episodes = episodeListViewModel?.episodes else {
             return
         }
-        var snapshot = NSDiffableDataSourceSnapshot<Section, Character>()
+        var snapshot = NSDiffableDataSourceSnapshot<Section, Episode>()
         snapshot.appendSections([.all])
-        snapshot.appendItems(characters, toSection: .all)
+        snapshot.appendItems(episodes, toSection: .all)
         dataSource.apply(snapshot, animatingDifferences: animatingChange)
     }
     
     @objc
     private func didTapSearch() {
-        let searchVC = SearchViewController(config: .init(type: .character))
-        searchVC.navigationItem.largeTitleDisplayMode = .never
-        self.navigationController?.pushViewController(searchVC, animated: true)
+        
     }
 }
 
 // MARK: - UICollectionViewDelegateFlowLayout
-extension CharacterListViewController: UICollectionViewDelegateFlowLayout {
+extension EpisodeListViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let width: CGFloat = (UIScreen.main.bounds.width - 30) / 2
+        let width: CGFloat = UIScreen.main.bounds.width - 20
         return CGSize(
             width: width,
-            height: width * 1.5
+            height: 100
         )
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForFooterInSection section: Int) -> CGSize {
-        guard let shouldShow = self.characterListViewModel?.shouldShowLoadMoreIndicator,
+        guard let shouldShow = self.episodeListViewModel?.shouldShowLoadMoreIndicator,
               shouldShow else {
             return .zero
         }
@@ -182,18 +180,16 @@ extension CharacterListViewController: UICollectionViewDelegateFlowLayout {
 }
 
 // MARK: - UICollectionViewDelegate
-extension CharacterListViewController: UICollectionViewDelegate {
+extension EpisodeListViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
         
-        guard let character = characterListViewModel?.characters[indexPath.row] else {
+        guard let episode = episodeListViewModel?.episodes[indexPath.row] else {
             return
         }
         
-        let detailVC = CharacterDetailViewController(
-            viewModel: CharacterDetailViewModel(
-                character: character
-            )
+        let detailVC = EpisodeDetailViewController(
+            episodeURL: URL(string: episode.url)
         )
         detailVC.navigationItem.largeTitleDisplayMode = .never
         self.navigationController?.pushViewController(detailVC, animated: true)
@@ -201,11 +197,11 @@ extension CharacterListViewController: UICollectionViewDelegate {
 }
 
 // MARK: - UIScrollViewDelegate
-extension CharacterListViewController: UIScrollViewDelegate {
+extension EpisodeListViewController: UIScrollViewDelegate {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        guard let shouldShow = self.characterListViewModel?.shouldShowLoadMoreIndicator,
+        guard let shouldShow = self.episodeListViewModel?.shouldShowLoadMoreIndicator,
               shouldShow,
-              !isLoadingMoreCharacters else {
+              !isLoadingMoreEpisodes else {
             return
         }
         
@@ -214,8 +210,8 @@ extension CharacterListViewController: UIScrollViewDelegate {
         let scrollViewFixedHeight = scrollView.frame.size.height
         
         if offset >= contentHeight - scrollViewFixedHeight - 70 {
-            isLoadingMoreCharacters = true
-            characterListViewModel?.fetchAdditionalCharacters()
+            isLoadingMoreEpisodes = true
+            episodeListViewModel?.fetchAdditionalEpisodes()
         }
     }
 }

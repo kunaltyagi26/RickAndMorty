@@ -119,6 +119,7 @@ final class CharacterCollectionViewCell: UICollectionViewCell {
                     self.statusLabel.text = self.viewModel?.characterStatus
                     self.imageView.image = image
                 }
+                
             case .failure(let error):
                 print(error)
             }

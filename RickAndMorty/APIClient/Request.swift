@@ -15,7 +15,7 @@ final class Request {
     }
     
     /// Desired endpoint
-    private let endpoint: Endpoint
+    let endpoint: Endpoint
     
     /// Path components for API, if any
     private let pathComponents: [String]
@@ -48,7 +48,7 @@ final class Request {
     }
     
     /// Computed and constructed API url
-    private var url: URL? {
+    var url: URL? {
         URL(string: urlString)
     }
     
@@ -82,6 +82,8 @@ final class Request {
         self.queryParamters = queryParamters
     }
     
+    /// Attempts to create request
+    /// - Parameter url: url to parse
     convenience init?(url: URL) {
         let urlString = url.absoluteString
         guard urlString.contains(Constants.baseURL) else {
@@ -92,18 +94,31 @@ final class Request {
         if trimmed.contains("/") {
             let components = trimmed.components(separatedBy: "/")
             if !components.isEmpty {
+                var pathComponents = [String]()
+                if components.count > 1 {
+                    pathComponents = components
+                    pathComponents.removeFirst()
+                }
+                
                 if let endpoint = Endpoint(rawValue: components[0]) {
-                    self.init(endpoint: endpoint)
+                    self.init(endpoint: endpoint, pathComponents: pathComponents)
                     return
                 }
             }
         } else if trimmed.contains("?") {
             let components = trimmed.components(separatedBy: "?")
-            if !components.isEmpty {
+            if !components.isEmpty, components.count >= 2 {
+                let queryItems: [URLQueryItem] = components[1].components(separatedBy: "&").compactMap {
+                    guard $0.contains("=") else {
+                        return nil
+                    }
+                    
+                    let parts = $0.components(separatedBy: "=")
+                    return URLQueryItem(name: parts[0], value: parts[1])
+                }
+                
                 if let endpoint = Endpoint(rawValue: components[0]) {
-                    let queryItems = components[1].components(separatedBy: "=")
-                    let queryItem = URLQueryItem(name: queryItems[0], value: queryItems[1])
-                    self.init(endpoint: endpoint, queryParamters: [queryItem])
+                    self.init(endpoint: endpoint, queryParamters: queryItems)
                     return
                 }
             }
