@@ -10,13 +10,13 @@ import UIKit
 class EpisodeDetailViewController: UIViewController {
     // MARK: - Enums
     enum Section: Int {
-        case photo
         case information
+        case characters
     }
     
     enum Row: Hashable {
-        case photo(UUID)
-        case info(UUID)
+        case info(EpisodeInfoCollectionViewCellViewModel)
+        case character(CharacterCollectionViewCellViewModel)
     }
     
     // MARK: - Variables
@@ -36,10 +36,20 @@ class EpisodeDetailViewController: UIViewController {
     
     // MARK: - Lifecycle Methods
     init(episodeURL: URL?) {
-        self.viewModel = EpisodeDetailViewModel(episodeURL: episodeURL) {
-            print("Everything downloaded")
-        }
         super.init(nibName: nil, bundle: nil)
+        activityIndicator.startAnimating()
+        viewModel = EpisodeDetailViewModel(episodeURL: episodeURL) { [weak self] in
+            guard let self = self,
+                  let viewModel = self.viewModel else {
+                return
+            }
+            
+            DispatchQueue.main.async {
+                viewModel.updateSnapshot(datasource: self.dataSource)
+                self.activityIndicator.stopAnimating()
+            }
+        }
+        
     }
     
     required init?(coder: NSCoder) {
@@ -63,6 +73,8 @@ class EpisodeDetailViewController: UIViewController {
         )
         
         setupCollectionView()
+        
+        activityIndicator.center(to: view)
     }
     
     /// To setup collection view
@@ -70,7 +82,6 @@ class EpisodeDetailViewController: UIViewController {
         collectionView.constraint(to: view)
         collectionView.delegate = self
         collectionView.dataSource = dataSource
-        viewModel?.updateSnapshot(datasource: dataSource)
     }
     
     private func createCollectionView() -> UICollectionView {
@@ -80,16 +91,12 @@ class EpisodeDetailViewController: UIViewController {
         
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.register(
-            CharacterPhotoCollectionViewCell.self,
-            forCellWithReuseIdentifier: "\(CharacterPhotoCollectionViewCell.self)"
+            EpisodeInfoCollectionViewCell.self,
+            forCellWithReuseIdentifier: "\(EpisodeInfoCollectionViewCell.self)"
         )
         collectionView.register(
-            CharacterInfoCollectionViewCell.self,
-            forCellWithReuseIdentifier: "\(CharacterInfoCollectionViewCell.self)"
-        )
-        collectionView.register(
-            CharacterEpisodeCollectionViewCell.self,
-            forCellWithReuseIdentifier: "\(CharacterEpisodeCollectionViewCell.self)"
+            CharacterCollectionViewCell.self,
+            forCellWithReuseIdentifier: "\(CharacterCollectionViewCell.self)"
         )
         return collectionView
     }
@@ -99,41 +106,48 @@ class EpisodeDetailViewController: UIViewController {
             collectionView: collectionView
         ) { [weak self] collectionView, indexPath, item in
             switch item {
-            case .photo(let photoVM):
-                return self?.getPhotoCell(indexPath: indexPath)
-                
             case .info(let infoVM):
-                return self?.getInfoCell(indexPath: indexPath)
+                return self?.getInfoCell(
+                    infoVM: infoVM,
+                    indexPath: indexPath
+                )
+                
+            case .character(let characterVM):
+                return self?.getCharacterCell(
+                    characterVM: characterVM,
+                    indexPath: indexPath
+                )
             }
         }
     }
     
-    private func getPhotoCell(
-        indexPath: IndexPath
-    ) -> UICollectionViewCell {
-        guard let cell = collectionView.dequeueReusableCell(
-            withReuseIdentifier: "\(CharacterPhotoCollectionViewCell.self)",
-            for: indexPath
-        ) as? CharacterPhotoCollectionViewCell else {
-            return UICollectionViewCell()
-        }
-        //cell.viewModel = photoVM
-        return cell
-    }
-    
     private func getInfoCell(
+        infoVM: EpisodeInfoCollectionViewCellViewModel,
         indexPath: IndexPath
     ) -> UICollectionViewCell {
         guard let cell = collectionView.dequeueReusableCell(
-            withReuseIdentifier: "\(CharacterInfoCollectionViewCell.self)",
+            withReuseIdentifier: "\(EpisodeInfoCollectionViewCell.self)",
             for: indexPath
-        ) as? CharacterInfoCollectionViewCell else {
+        ) as? EpisodeInfoCollectionViewCell else {
             return UICollectionViewCell()
         }
-        //cell.viewModel = infoVM
+        cell.viewModel = infoVM
         return cell
     }
     
+    private func getCharacterCell(
+        characterVM: CharacterCollectionViewCellViewModel,
+        indexPath: IndexPath
+    ) -> UICollectionViewCell {
+        guard let cell = collectionView.dequeueReusableCell(
+            withReuseIdentifier: "\(CharacterCollectionViewCell.self)",
+            for: indexPath
+        ) as? CharacterCollectionViewCell else {
+            return UICollectionViewCell()
+        }
+        cell.viewModel = characterVM
+        return cell
+    }
     
     @objc
     private func didTapShare() {
@@ -142,5 +156,26 @@ class EpisodeDetailViewController: UIViewController {
 }
 
 extension EpisodeDetailViewController: UICollectionViewDelegate {
-    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        collectionView.deselectItem(at: indexPath, animated: true)
+        
+        guard let item = dataSource.itemIdentifier(for: indexPath) else {
+            return
+        }
+        
+        switch item {
+        case .info(_):
+            break
+            
+        case .character(_):
+            guard let character = viewModel?.character(at: indexPath.row) else {
+                return
+            }
+            
+            let characterDetailVC = CharacterDetailViewController(
+                character: character
+            )
+            self.navigationController?.pushViewController(characterDetailVC, animated: true)
+        }
+    }
 }

@@ -191,9 +191,7 @@ extension CharacterListViewController: UICollectionViewDelegate {
         }
         
         let detailVC = CharacterDetailViewController(
-            viewModel: CharacterDetailViewModel(
-                character: character
-            )
+            character: character
         )
         detailVC.navigationItem.largeTitleDisplayMode = .never
         self.navigationController?.pushViewController(detailVC, animated: true)

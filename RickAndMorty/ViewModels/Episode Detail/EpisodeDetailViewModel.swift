@@ -15,36 +15,40 @@ final class EpisodeDetailViewModel {
             completion()
         }
     }
+    private let dispatchGroup = DispatchGroup()
     
     private var completion: () -> Void
     
     init(episodeURL: URL?, completion: @escaping () -> Void) {
         self.episodeURL = episodeURL
         self.completion = completion
-        getEpisode()
+        
+        Task {
+            await getEpisode()
+            if let episode {
+                fetchRelatedCharacters(episode: episode)
+            }
+        }
     }
     
     var characters: [Character] {
         return dataTuple?.1 ?? []
     }
     
-    private func getEpisode() {
+    private func getEpisode() async {
         guard let episodeURL = episodeURL,
               let request = Request(url: episodeURL) else {
             return
         }
+    
+        let episodeResult = await Service.shared.execute(request, expecting: Episode.self)
         
-        Task {
-            let episodeResult = await Service.shared.execute(request, expecting: Episode.self)
+        switch episodeResult {
+        case .success(let episode):
+            self.episode = episode
             
-            switch episodeResult {
-            case .success(let episode):
-                self.episode = episode
-                fetchRelatedCharacters(episode: episode)
-                
-            case .failure(let error):
-                print(error)
-            }
+        case .failure(let error):
+            print(error)
         }
     }
     
@@ -55,7 +59,6 @@ final class EpisodeDetailViewModel {
             Request(url: $0)
         }
         
-        let dispatchGroup = DispatchGroup()
         var characters = [Character]()
         
         requests.forEach { request in
@@ -66,7 +69,7 @@ final class EpisodeDetailViewModel {
                 expecting: Character.self
             ) { characterResult in
                 defer {
-                    dispatchGroup.leave()
+                    self.dispatchGroup.leave()
                 }
                 
                 switch characterResult {
@@ -91,38 +94,12 @@ final class EpisodeDetailViewModel {
         }
         
         switch section {
-        case .photo:
-            return createPhotoSection()
-            
         case .information:
             return createInformationSection()
+            
+        case .characters:
+            return createCharactersSection()
         }
-    }
-    
-    private func createPhotoSection() -> NSCollectionLayoutSection {
-        let item = NSCollectionLayoutItem(
-            layoutSize: NSCollectionLayoutSize(
-                widthDimension: .fractionalWidth(1.0),
-                heightDimension: .fractionalHeight(1.0)
-            )
-        )
-        item.contentInsets = NSDirectionalEdgeInsets(
-            top: 0,
-            leading: 0,
-            bottom: 10,
-            trailing: 0
-        )
-        
-        let group = NSCollectionLayoutGroup.vertical(
-            layoutSize: NSCollectionLayoutSize(
-                widthDimension: .fractionalWidth(1.0),
-                heightDimension: .fractionalHeight(0.4)
-            ),
-            subitems: [item]
-        )
-        
-        let section = NSCollectionLayoutSection(group: group)
-        return section
     }
     
     private func createInformationSection() -> NSCollectionLayoutSection {
@@ -142,7 +119,39 @@ final class EpisodeDetailViewModel {
         let group = NSCollectionLayoutGroup.horizontal(
             layoutSize: NSCollectionLayoutSize(
                 widthDimension: .fractionalWidth(1.0),
-                heightDimension: .absolute(150)
+                heightDimension: .absolute(80)
+            ),
+            subitems: [item, item]
+        )
+        let section = NSCollectionLayoutSection(group: group)
+        section.contentInsets = NSDirectionalEdgeInsets(
+            top: 0,
+            leading: 0,
+            bottom: 10,
+            trailing: 0
+        )
+        
+        return section
+    }
+    
+    private func createCharactersSection() -> NSCollectionLayoutSection {
+        let item = NSCollectionLayoutItem(
+            layoutSize: NSCollectionLayoutSize(
+                widthDimension: .fractionalWidth(0.5),
+                heightDimension: .fractionalHeight(1.0)
+            )
+        )
+        item.contentInsets = NSDirectionalEdgeInsets(
+            top: 5,
+            leading: 10,
+            bottom: 5,
+            trailing: 10
+        )
+        
+        let group = NSCollectionLayoutGroup.horizontal(
+            layoutSize: NSCollectionLayoutSize(
+                widthDimension: .fractionalWidth(1.0),
+                heightDimension: .absolute(260)
             ),
             subitems: [item, item]
         )
@@ -156,7 +165,30 @@ final class EpisodeDetailViewModel {
         animatingChange: Bool = false
     ) {
         var snapshot = NSDiffableDataSourceSnapshot<EpisodeDetailViewController.Section, EpisodeDetailViewController.Row>()
-        snapshot.appendSections([.photo, .information])
+        snapshot.appendSections([.information, .characters])
+        
+        if let episode = episode {
+            let info: [EpisodeDetailViewController.Row] = [
+                .info(.init(type: .name, value: episode.name)),
+                .info(.init(type: .airDate, value: episode.airDate)),
+                .info(.init(type: .episode, value: episode.episode)),
+                .info(.init(type: .created, value: episode.created))
+            ]
+            snapshot.appendItems(info, toSection: .information)
+        }
+        
+        
+        if let dataTuple = dataTuple {
+            let characters: [EpisodeDetailViewController.Row] = dataTuple.1.compactMap {
+                .character(CharacterCollectionViewCellViewModel(character: $0))
+            }
+            snapshot.appendItems(characters, toSection: .characters)
+        }
+        
         datasource.apply(snapshot, animatingDifferences: animatingChange)
+    }
+    
+    func character(at index: Int) -> Character? {
+        return dataTuple?.1[index]
     }
 }

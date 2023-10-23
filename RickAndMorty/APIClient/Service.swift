@@ -81,11 +81,13 @@ final class Service {
             url: request.url
         ) {
             do {
-                let cachedResponse = try JSONDecoder().decode(type.self, from: cachedData)
-                completion(.success(cachedResponse))
-            } catch {
+                let result = try JSONDecoder().decode(type.self, from: cachedData)
+                completion(.success(result))
+            }
+            catch {
                 completion(.failure(.decodingError))
             }
+            return
         }
         
         guard let urlRequest = request.urlRequest else {
@@ -93,25 +95,28 @@ final class Service {
             return
         }
         
-        URLSession.shared.dataTask(with: urlRequest) { [weak self] data, response, error in
-            guard let data = data,
-                  let urlResponse = response as? HTTPURLResponse,
-                  200...300 ~= urlResponse.statusCode else {
+        let task = URLSession.shared.dataTask(with: urlRequest) { [weak self] data, response, error in
+            guard let data = data, error == nil,
+            let response = response as? HTTPURLResponse,
+            200...300 ~= response.statusCode else {
                 completion(.failure(.invalidResponse))
                 return
             }
             
+            // Decode response
             do {
-                let response = try JSONDecoder().decode(type.self, from: data)
+                let result = try JSONDecoder().decode(type.self, from: data)
                 self?.cacheManager.setCache(
                     for: request.endpoint,
                     url: request.url,
                     data: data
                 )
-                completion(.success(response))
-            } catch {
+                completion(.success(result))
+            }
+            catch {
                 completion(.failure(.decodingError))
             }
-        }.resume()
+        }
+        task.resume()
     }
 }

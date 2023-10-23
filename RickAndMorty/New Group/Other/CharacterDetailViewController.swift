@@ -38,8 +38,8 @@ class CharacterDetailViewController: UIViewController {
     }()
     
     // MARK: - Lifecycle Methods
-    init(viewModel: CharacterDetailViewModel) {
-        self.viewModel = viewModel
+    init(character: Character) {
+        self.viewModel = CharacterDetailViewModel(character: character)
         super.init(nibName: nil, bundle: nil)
     }
     

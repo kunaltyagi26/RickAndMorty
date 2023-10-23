@@ -155,7 +155,9 @@ final class EpisodeListViewController: UIViewController {
     
     @objc
     private func didTapSearch() {
-        
+        let searchVC = SearchViewController(config: .init(type: .character))
+        searchVC.navigationItem.largeTitleDisplayMode = .never
+        self.navigationController?.pushViewController(searchVC, animated: true)
     }
 }
 
