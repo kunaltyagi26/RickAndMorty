@@ -94,7 +94,7 @@ class CharacterEpisodeCollectionViewCell: UICollectionViewCell {
             return
         }
         
-        contentView.layer.borderColor = viewModel.borderColor.cgColor ?? UIColor.systemBlue.cgColor
+        contentView.layer.borderColor = viewModel.borderColor.cgColor 
         
         viewModel.registerDataBlock {[weak self] in
             guard let self = self else {

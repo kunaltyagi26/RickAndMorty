@@ -32,8 +32,8 @@ extension CharacterPhotoCollectionViewCellViewModel: Hashable {
     
     static func == (
         lhs: CharacterPhotoCollectionViewCellViewModel,
-        rhs: CharacterPhotoCollectionViewCellViewModel)
-    -> Bool {
+        rhs: CharacterPhotoCollectionViewCellViewModel
+    ) -> Bool {
         lhs.id == rhs.id
     }
 }

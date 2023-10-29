@@ -82,8 +82,8 @@ extension CharacterEpisodeCollectionViewCellViewModel: Hashable {
     
     static func == (
         lhs: CharacterEpisodeCollectionViewCellViewModel,
-        rhs: CharacterEpisodeCollectionViewCellViewModel)
-    -> Bool {
+        rhs: CharacterEpisodeCollectionViewCellViewModel
+    ) -> Bool {
         lhs.id == rhs.id
     }
 }

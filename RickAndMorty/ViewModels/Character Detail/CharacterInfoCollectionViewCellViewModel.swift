@@ -100,8 +100,8 @@ extension CharacterInfoCollectionViewCellViewModel: Hashable {
     
     static func == (
         lhs: CharacterInfoCollectionViewCellViewModel,
-        rhs: CharacterInfoCollectionViewCellViewModel)
-    -> Bool {
+        rhs: CharacterInfoCollectionViewCellViewModel
+    ) -> Bool {
         lhs.id == rhs.id
     }
 }

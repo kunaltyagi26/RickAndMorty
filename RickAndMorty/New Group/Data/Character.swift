@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Character: Decodable, Hashable {
+struct Character: Decodable, Hashable, Identifiable {
     private let uuid = UUID()
     
     var id: Int
