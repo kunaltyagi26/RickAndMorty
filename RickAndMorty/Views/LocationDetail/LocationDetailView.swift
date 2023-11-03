@@ -11,7 +11,7 @@ struct LocationDetailView: View {
     @StateObject var viewModel: LocationDetailViewModel
     
     var gridItems = [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]
-    
+
     var body: some View {
         ScrollView {
             VStack {
@@ -29,7 +29,13 @@ struct LocationDetailView: View {
                             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
                                 ForEach(datasource.value) { valueObject in
                                     if let vm = valueObject as? CharacterCollectionViewCellViewModel {
-                                        LocationResidentsCellView(viewModel: vm)
+                                        NavigationLink(
+                                            destination: {
+                                                CharacterDetailView(character: vm.character)
+                                            }
+                                        ) {
+                                            LocationResidentsCellView(viewModel: vm)
+                                        }
                                     }
                                 }
                             }

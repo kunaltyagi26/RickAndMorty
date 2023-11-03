@@ -12,8 +12,6 @@ struct LocationResidentsCellView: View {
     
     init(viewModel: CharacterCollectionViewCellViewModel) {
         self.viewModel = viewModel
-        URLCache.shared.memoryCapacity = 10_000_000
-        URLCache.shared.diskCapacity = 1_000_000_000
     }
     
     let gridItems = [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]

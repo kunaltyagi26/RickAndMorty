@@ -14,10 +14,13 @@ final class CharacterCollectionViewCellViewModel: LocationRow {
     var characterStatus: String?
     var characterImageURL: String?
     
+    let character: Character
+    
     init(character: Character) {
         characterName = character.name
         characterStatus = "Status: \(character.status.text)"
         characterImageURL = character.image
+        self.character = character
     }
     
     func fetchImage() async -> Result<UIImage,Service.ServiceError> {

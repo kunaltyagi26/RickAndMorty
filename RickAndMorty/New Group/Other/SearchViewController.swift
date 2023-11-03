@@ -13,6 +13,17 @@ class SearchViewController: UIViewController {
             case character
             case episode
             case location
+            
+            var title: String {
+                switch self {
+                case .character:
+                    return "Search Characters"
+                case .episode:
+                    return "Search Episodes"
+                case .location:
+                    return "Search Locations"
+                }
+            }
         }
         
         let type: `Type`
@@ -31,7 +42,7 @@ class SearchViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "Search"
+        title = config.type.title
         view.backgroundColor = .systemBackground
     }
 }

@@ -21,7 +21,17 @@ final class LocationViewController: UIViewController {
         view.backgroundColor = .systemBackground
         title = "Location"
         
+        setupView()
+    }
+    
+    private func setupView() {
         addView()
+        
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            barButtonSystemItem: .search,
+            target: self,
+            action: #selector(didTapSearch)
+        )
     }
     
     private func addView() {
@@ -30,5 +40,12 @@ final class LocationViewController: UIViewController {
         
         view.addSubview(locationVC.view)
         locationVC.view.constraint(to: view)
+    }
+    
+    @objc
+    private func didTapSearch() {
+        let searchVC = SearchViewController(config: .init(type: .location))
+        searchVC.navigationItem.largeTitleDisplayMode = .never
+        self.navigationController?.pushViewController(searchVC, animated: true)
     }
 }
